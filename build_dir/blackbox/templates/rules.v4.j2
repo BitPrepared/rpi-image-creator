@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+
+*nat
+:PREROUTING ACCEPT [6:1255]
+:INPUT ACCEPT [6:1255]
+:OUTPUT ACCEPT [16:1248]
+:POSTROUTING ACCEPT [0:0]
+-A POSTROUTING -o {{ lan_adapter }} -j MASQUERADE
+COMMIT
+
+*filter
+:INPUT ACCEPT [132:8265]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [12:872]
+-A FORWARD -i {{ lan_adapter }} -o {{ wifi_adapter }} -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A FORWARD -i {{ wifi_adapter }} -o {{ lan_adapter }} -j ACCEPT
+COMMIT

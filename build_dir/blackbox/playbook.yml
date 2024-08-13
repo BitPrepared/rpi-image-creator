@@ -1,0 +1,281 @@
+# https://www.raspberrypi.com/documentation/computers/configuration.html#setting-up-a-headless-raspberry-pi
+---
+- name: Setup RPi
+  hosts: all
+  become: true
+  become_user: pi
+  tasks:
+
+    - name: Change hostname
+      become_user: root
+      hostname:
+        name: "{{ hostname }}"
+
+    - name: Create a file
+      copy:
+        dest: ~/test.txt
+        content: "This is a test txt file"
+
+    - name: Enable SSH
+      become_user: root
+      file:
+        path: /boot/ssh
+        state: touch
+
+    - name: Enable zswap with default settings
+      become_user: root
+      replace:
+        path: /boot/cmdline.txt
+        regexp: '[^#\n]$'
+        replace: ' zswap.enabled=1'
+
+    - name: Enable dwc2 and g_ether for OTG
+      become_user: root
+      replace:
+        path: /boot/cmdline.txt
+        regexp: '[^#\n]$'
+        replace: ' modules-load=dwc2,g_ether'
+
+    - name: adjust /boot/config.txt
+      become_user: root
+      lineinfile:
+        dest: /boot/config.txt
+        insertafter: EOF
+        line: '{{ item }}'
+      with_items: "{{boot_options}}"
+
+    # - name: Download resize2fs_once binary
+    #   become_user: root
+    #   get_url:
+    #     url: https://raw.githubusercontent.com/RPi-Distro/pi-gen/master/stage2/01-sys-tweaks/files/resize2fs_once
+    #     dest: /etc/init.d/resize2fs_once
+    #     mode: 0755
+
+    - name: resize2fs_once binary
+      become_user: root
+      copy:
+        dest: /etc/init.d/resize2fs_once
+        src: "resize2fs_once"
+        mode: 0755
+
+    - name: Force automatic rootfs expansion on first boot
+      become_user: root
+      systemd:
+        service: resize2fs_once
+        enabled: true
+
+    - name: Install kitty-terminfo
+      become_user: root
+      package:
+        name: kitty-terminfo
+        state: present
+    
+    - name: Install required software packages
+      become_user: root
+      package:
+        name:
+          - hostapd
+          - udhcpd
+          - iptables-persistent
+          - nginx
+          - dnsmasq
+        state: present
+
+    - name: Configure hostapd
+      become_user: root
+      template:
+        src: templates/hostapd.conf.j2
+        dest: /etc/hostapd/hostapd.conf
+
+    - name: Register hostapd configuration
+      become_user: root
+      template:
+        src: templates/hostapd-init.j2
+        dest: /etc/default/hostapd
+
+    - name: Configure udhcpd
+      become_user: root
+      template:
+        src: templates/udhcpd.conf.j2
+        dest: /etc/udhcpd.conf
+
+    - name: Register udhcpd configuration
+      become_user: root
+      template:
+        src: templates/udhcpd-init.j2
+        dest: /etc/default/udhcpd
+
+    - name: Configure network interfaces
+      become_user: root
+      template:
+        src: templates/interfaces.j2
+        dest: /etc/network/interfaces
+
+    - name: Enable IP forwarding
+      become_user: root
+      sysctl:
+        name: "net.ipv4.ip_forward"
+        value: "1"
+        sysctl_set: yes
+        state: present
+        reload: yes
+
+    - name: Install iptables rules
+      become_user: root
+      template:
+        src: templates/rules.{{ item }}.j2
+        dest: /etc/iptables/rules.{{ item }}
+      with_items:
+        - v4
+        - v6
+
+    # fixme: metterli in /etc/rc.local
+    # sudo hostapd /etc/hostapd/hostapd.conf &
+    # iptables-restore < /etc/iptables.ipv4.nat
+
+    # - name: Load new iptables rules
+    #   become_user: root
+    #   shell: "{{ item }}"
+    #   with_items:
+    #     - iptables-restore < /etc/iptables/rules.v4
+    #     - ip6tables-restore < /etc/iptables/rules.v6
+
+    - name: Add base NGINX configuration file
+      become_user: root
+      copy:
+        dest: /etc/nginx/nginx.conf
+        src: etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: 0644
+    
+    - name: Add static site config files
+      become_user: root
+      template:
+        src: etc/nginx/conf.d/site.conf.j2
+        dest: "/etc/nginx/conf.d/{{ item.name }}.conf"
+        owner: root
+        group: root
+        mode: 0644
+      with_items: "{{ webserver_static_sites }}"
+
+    - name: Add static site config files
+      become_user: root
+      template:
+        src: etc/nginx/conf.d/site.conf.j2
+        dest: "/etc/nginx/conf.d/{{ item.name }}.conf"
+        owner: root
+        group: root
+        mode: 0644
+      with_items: "{{ webserver_static_sites_with_game }}"
+
+    - name: Copy site contents
+      become_user: root
+      copy:
+        dest: "{{ item.root }}/"
+        src: "sites/{{ item.name }}/"
+        owner: www-data
+        group: www-data
+        mode: 0755
+      with_items: "{{ webserver_static_sites }}"
+
+    - name: Copy site contents
+      become_user: root
+      copy:
+        dest: "{{ item.root }}/"
+        src: "sites/{{ item.name }}/"
+        owner: www-data
+        group: www-data
+        mode: 0755
+      with_items: "{{ webserver_static_sites_with_game }}"
+
+    - name: ensures assets dir exists
+      become_user: root
+      file: 
+        path: "{{ item.rootGame }}/assets/"
+        state: directory
+      with_items: "{{ webserver_static_sites_with_game }}"
+
+    - name: Download jquery
+      become_user: root
+      copy:
+        dest: "{{ item.rootGame }}/assets/jquery-1.12.1.min.js"
+        src: "jquery-1.12.1.min.js"
+        owner: www-data
+        group: www-data
+        mode: 0755
+      with_items: "{{ webserver_static_sites_with_game }}"
+
+    - name: change all https url to http
+      become_user: root
+      ansible.builtin.replace:
+        path: "{{ item.rootGame }}/index.html"
+        regexp: 'https://,'
+        replace: 'http://,'
+      with_items: "{{ webserver_static_sites_with_game }}"
+
+    - name: change jquery external to internal
+      become_user: root 
+      ansible.builtin.replace:
+        path: "{{ item.rootGame }}/index.html"
+        regexp: 'http://code.jquery.org'
+        replace: 'assets (http://code.jquery.com/,assets/,g)'
+      with_items: "{{ webserver_static_sites_with_game }}"
+      
+    - name: Set configuration dnsmasq file
+      become_user: root
+      template:
+        src: etc/dnsmasq.conf.j2
+        dest: /etc/dnsmasq.conf
+        validate: 'dnsmasq --test --conf-file=%s'
+
+    - name: Generate /etc/hosts file
+      become_user: root
+      template:
+        src=etc/hosts.j2
+        dest=/etc/hosts
+
+    - name: Enable and (re-)start services
+      become_user: root
+      ansible.builtin.service:
+        name: "{{ item }}"
+        state: restarted
+        enabled: true
+      with_items:
+        - hostapd
+        - nginx
+        - dnsmasq
+
+    - name: remove autologin
+      become_user: root
+      file:
+        path: /etc/systemd/system/getty@tty1.service.d/autologin.conf
+        state: absent
+
+    - name: mask autologin
+      become_user: root
+      shell: "ln -s /dev/null /etc/systemd/system/getty@tty1.service.d/autologin.conf"
+
+    # raspi-config nonint get_boot_behaviour
+    - name: Set Boot behaviour
+      become_user: root
+      shell: "raspi-config nonint do_boot_behaviour {{ BOOTBEHAVIOUR }}"
+
+    - name: Disable boot splash
+      become_user: root
+      shell: "raspi-config nonint do_boot_splash 1"
+
+    - name: Set authorized keys taken from url using lookup
+      become_user: root
+      ansible.posix.authorized_key:
+        user: pi
+        state: present
+        key: "{{ lookup('file', playbook_dir + '/files/keys/id_rsa.pub') }}"
+
+    # echo 'r3notaRE' | openssl passwd -6 -stdin
+    - name: userconf.txt 
+      become_user: root
+      copy:
+        dest: /boot/userconf.txt 
+        content: "pi:$6$rz9STc6t7Sqowjo7$IGlgGK/gd22WV1/RIaWuEQHYIZ6O2eLPHPcH.LYfoz6Z5tywBcnvffsE0mSImLo3t.PbYBBriOHk1reVuPHvX/"
+

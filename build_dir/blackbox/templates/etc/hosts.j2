@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+127.0.0.1	localhost {{ hostname }}
+::1		    localhost ip6-localhost ip6-loopback
+ff02::1		ip6-allnodes
+ff02::2		ip6-allrouters
+
+192.168.42.42 {{ hostname }}
+
+{% for item in webserver_static_sites %}
+192.168.1.1 {{ item.name }}
+{% endfor %}
+
+{% for item in webserver_static_sites_with_game %}
+192.168.1.1 {{ item.name }}
+{% endfor %}
