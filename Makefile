@@ -21,9 +21,10 @@ clean:
 	rm build_dir/raspberry-pi.img
 
 clean-docker:
+	docker buildx prune
+#	docker builder prune
 	docker rmi $(IMAGE_NAME)
 	docker rmi $(IMAGE_NAME):$(VERSION)
-	docker buildx prune
 
 qrcode:
 	qrencode "WIFI:T:WPA;S:blackbox-1;P:blackbox;;" -t ansiutf8
