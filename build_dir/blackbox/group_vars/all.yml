@@ -1,6 +1,5 @@
 ---
-#hostname: blackbox-1
-hostname: debian-remote-pi
+hostname: blackbox-1
 
 # -|----------------------------------------------------------------------------
 #  | Device Settings
@@ -87,9 +86,13 @@ domain: costigiola.net
 #  |
 disable_wmm: True
 
+cmdline_options:
+ - ipv6.disable=1
+ - zswap.enabled=1
+ - modules-load=dwc2,g_ether
 
 boot_options:
-#  - "dtoverlay=dwc2"
+ - "dtoverlay=dwc2"
 
 webserver_static_sites:
   - name: studio.code.org

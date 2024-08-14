@@ -22,19 +22,27 @@
         path: /boot/ssh
         state: touch
 
-    - name: Enable zswap with default settings
-      become_user: root
-      replace:
-        path: /boot/cmdline.txt
-        regexp: '[^#\n]$'
-        replace: ' zswap.enabled=1'
+    # - name: Enable zswap with default settings
+    #   become_user: root
+    #   replace:
+    #     path: /boot/cmdline.txt
+    #     regexp: '[^#\n]$'
+    #     replace: ' zswap.enabled=1'
 
-    - name: Enable dwc2 and g_ether for OTG
+    # - name: Enable dwc2 and g_ether for OTG
+    #   become_user: root
+    #   replace:
+    #     path: /boot/cmdline.txt
+    #     regexp: '[^#\n]$'
+    #     replace: ' modules-load=dwc2,g_ether'
+
+    - name: Configure options in /boot/cmdline.txt
       become_user: root
       replace:
         path: /boot/cmdline.txt
-        regexp: '[^#\n]$'
-        replace: ' modules-load=dwc2,g_ether'
+        regexp: '^([\w](?!.*\b{{ item }}\b).*)$'
+        replace: '\1 {{ item }}'
+      with_items: "{{cmdline_options}}"
 
     - name: adjust /boot/config.txt
       become_user: root
@@ -63,6 +71,13 @@
       systemd:
         service: resize2fs_once
         enabled: true
+
+    - name: Update Repos
+      become_user: root
+      ansible.builtin.apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
 
     - name: Install kitty-terminfo
       become_user: root
