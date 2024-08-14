@@ -50,7 +50,6 @@ mount /dev/loop0p1 /tmp/raspbian/boot/
 
 ## Unmount image
 ```
-umount /mnt/android/
 umount /tmp/raspbian/boot/
 umount /tmp/raspbian
 losetup -d /dev/loop0
