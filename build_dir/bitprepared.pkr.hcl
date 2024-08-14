@@ -1,11 +1,8 @@
 # reuse this long string
 variable "raspios_url" {
   type    = string
- default = "https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2023-05-03/2023-05-03-raspios-bullseye-armhf.img.xz"
+  default = "https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2024-07-04/2024-07-04-raspios-bookworm-armhf.img.xz"
 }
-
-# bisogna aggiornare tante cose se si passa avanti
-#default = "https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2024-03-15/2024-03-15-raspios-bookworm-armhf.img.xz"
 
 source "arm" "pi" {
   file_checksum_type    = "sha256"
@@ -14,9 +11,9 @@ source "arm" "pi" {
   file_unarchive_cmd    = ["xz", "--decompress", "$ARCHIVE_PATH"]
   file_urls             = ["${var.raspios_url}"]
   image_build_method    = "resize"
-  image_path                   = "raspberry-pi.img"
-  image_size                   = "4G"
-  image_type                   = "dos"
+  image_path            = "raspberry-pi.img"
+  image_size            = "6G"
+  image_type            = "dos"
   image_chroot_env      = ["PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"]
   image_mount_path      = "/tmp/rpi_chroot"
   image_partitions {
