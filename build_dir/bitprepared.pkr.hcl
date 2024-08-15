@@ -39,6 +39,11 @@ source "arm" "pi" {
 build {
   sources = ["source.arm.pi"]
 
+  provisioner "file" {
+    source = "/build/blackbox/files/sites/"
+    destination = "/usr/share/nginx/"
+  }
+
   provisioner "ansible" {
     extra_arguments = [
       "--connection=chroot",
@@ -47,4 +52,5 @@ build {
       ]
     playbook_file   = "blackbox/playbook.yml"
   }
+
 }

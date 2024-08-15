@@ -22,17 +22,11 @@ otg_adapter: usb0
 #  |     - `netmask` the corresponding subnet mask
 #  |     - `gateway` ip address of the router
 #  |
-# lan_static:
-#   enabled: False
-#   address: 192.168.0.2
-#   netmask: 255.255.255.0
-#   gateway: 192.168.0.1
-
 lan_static:
-  enabled: True
-  address: 10.0.2.50
+  enabled: False
+  address: 192.168.0.2
   netmask: 255.255.255.0
-  gateway: 10.0.2.5
+  gateway: 192.168.0.1
 
 
 # -|----------------------------------------------------------------------------
@@ -87,7 +81,6 @@ domain: costigiola.net
 disable_wmm: True
 
 cmdline_options:
- - ipv6.disable=1
  - zswap.enabled=1
  - modules-load=dwc2,g_ether
 

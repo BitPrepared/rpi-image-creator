@@ -80,6 +80,8 @@
           - iptables-persistent
           - nginx
           - dnsmasq
+          - iotop
+          - htop
         state: present
 
     - name: Configure hostapd
@@ -180,15 +182,15 @@
         mode: 0755
       with_items: "{{ webserver_static_sites }}"
 
-    - name: Copy site contents
-      become_user: root
-      copy:
-        dest: "{{ item.root }}/"
-        src: "sites/{{ item.name }}/"
-        owner: www-data
-        group: www-data
-        mode: 0755
-      with_items: "{{ webserver_static_sites_with_game }}"
+    # - name: Copy site contents
+    #   become_user: root
+    #   copy:
+    #     dest: "{{ item.root }}/"
+    #     src: "sites/{{ item.name }}/"
+    #     owner: www-data
+    #     group: www-data
+    #     mode: 0755
+    #   with_items: "{{ webserver_static_sites_with_game }}"
 
     - name: ensures assets dir exists
       become_user: root
