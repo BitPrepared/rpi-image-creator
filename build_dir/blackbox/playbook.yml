@@ -22,20 +22,6 @@
         path: /boot/ssh
         state: touch
 
-    # - name: Enable zswap with default settings
-    #   become_user: root
-    #   replace:
-    #     path: /boot/cmdline.txt
-    #     regexp: '[^#\n]$'
-    #     replace: ' zswap.enabled=1'
-
-    # - name: Enable dwc2 and g_ether for OTG
-    #   become_user: root
-    #   replace:
-    #     path: /boot/cmdline.txt
-    #     regexp: '[^#\n]$'
-    #     replace: ' modules-load=dwc2,g_ether'
-
     - name: Configure options in /boot/cmdline.txt
       become_user: root
       replace:
