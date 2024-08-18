@@ -1,5 +1,6 @@
 packer-builder-arm
-/build_dir/raspberry-pi.img
+/build_dir/raspberry-pi*.img
+/build_dir/raspberry-pi.img.zip
 /build_dir/.packer_cache/
 /build_dir/.packer_plugins/
 /build_dir/blackbox/files/sites/arancio.costigiola.net/

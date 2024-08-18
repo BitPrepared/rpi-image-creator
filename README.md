@@ -27,7 +27,15 @@ Attenzione che per come e' l'export dei game, il nome del gioco e' da mettere ne
 Per creare l'immagine raspberry basta dare `make run`
 Per ripulire l'immagine generata `make clean`.
 
-Indicative Time: 36 minutes 48 seconds.
+Indicative Time: 15 minutes 46 seconds
+
+Per fare l'immagine finale dare `make run-game`
+
+Indicative Time: 2 minutes 23 seconds
+
+Per tutti e 4 le immagini  dare `make run-all`
+
+Indicative Time:	10 minutes 4 seconds 
 
 # Accesso
 ## Wifi

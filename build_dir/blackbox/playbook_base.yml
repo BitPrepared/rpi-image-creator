@@ -162,16 +162,6 @@
         mode: 0644
       with_items: "{{ webserver_static_sites }}"
 
-    - name: Add static site config files
-      become_user: root
-      template:
-        src: etc/nginx/conf.d/site.conf.j2
-        dest: "/etc/nginx/conf.d/{{ item.name }}.conf"
-        owner: root
-        group: root
-        mode: 0644
-      with_items: "{{ webserver_static_sites_with_game }}"
-
     - name: Copy site contents
       become_user: root
       copy:
@@ -181,49 +171,6 @@
         group: www-data
         mode: 0755
       with_items: "{{ webserver_static_sites }}"
-
-    # - name: Copy site contents
-    #   become_user: root
-    #   copy:
-    #     dest: "{{ item.root }}/"
-    #     src: "sites/{{ item.name }}/"
-    #     owner: www-data
-    #     group: www-data
-    #     mode: 0755
-    #   with_items: "{{ webserver_static_sites_with_game }}"
-
-    - name: ensures assets dir exists
-      become_user: root
-      file: 
-        path: "{{ item.rootGame }}/assets/"
-        state: directory
-      with_items: "{{ webserver_static_sites_with_game }}"
-
-    - name: Download jquery
-      become_user: root
-      copy:
-        dest: "{{ item.rootGame }}/assets/jquery-1.12.1.min.js"
-        src: "jquery-1.12.1.min.js"
-        owner: www-data
-        group: www-data
-        mode: 0755
-      with_items: "{{ webserver_static_sites_with_game }}"
-
-    - name: change all https url to http
-      become_user: root
-      ansible.builtin.replace:
-        path: "{{ item.rootGame }}/index.html"
-        regexp: 'https://,'
-        replace: 'http://,'
-      with_items: "{{ webserver_static_sites_with_game }}"
-
-    - name: change jquery external to internal
-      become_user: root 
-      ansible.builtin.replace:
-        path: "{{ item.rootGame }}/index.html"
-        regexp: 'http://code.jquery.org'
-        replace: 'assets (http://code.jquery.com/,assets/,g)'
-      with_items: "{{ webserver_static_sites_with_game }}"
       
     - name: Set configuration dnsmasq file
       become_user: root

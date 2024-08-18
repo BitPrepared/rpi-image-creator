@@ -1,17 +1,19 @@
 # reuse this long string
+variable "blid" {
+    type = string
+}
+
 variable "raspios_url" {
   type    = string
-  default = "https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2024-07-04/2024-07-04-raspios-bookworm-armhf.img.xz"
+  default = "file:///build/raspberry-pi.img.zip"
 }
 
 source "arm" "pi" {
-  file_checksum_type    = "sha256"
-  file_checksum_url     = "${var.raspios_url}.sha256"
-  file_target_extension = "xz"
-  file_unarchive_cmd    = ["xz", "--decompress", "$ARCHIVE_PATH"]
   file_urls             = ["${var.raspios_url}"]
-  image_build_method    = "resize"
-  image_path            = "raspberry-pi.img"
+  file_target_extension = "zip"
+  file_checksum_type    = "none"
+  image_build_method    = "reuse"
+  image_path            = "raspberry-pi-${var.blid}.img"
   image_size            = "6G"
   image_type            = "dos"
   image_chroot_env      = ["PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"]
@@ -40,12 +42,7 @@ build {
   sources = ["source.arm.pi"]
 
   provisioner "file" {
-    source = "/build/blackbox/files/sites/studio.code.org"
-    destination = "/usr/share/nginx/"
-  }
-
-  provisioner "file" {
-    source = "/build/blackbox/files/sites/www.bitprepared.it"
+    source = "/build/blackbox/files/sites/"
     destination = "/usr/share/nginx/"
   }
 
@@ -53,21 +50,12 @@ build {
     extra_arguments = [
       "--connection=chroot",
       "-e ansible_host=/tmp/rpi_chroot",
+      "-e ssid=blackbox-${var.blid}",
+      "-e hostname=blackbox-${var.blid}",
       "-vvv"
       ]
-    playbook_file   = "blackbox/playbook_base.yml"
+    playbook_file   = "blackbox/playbook_game.yml"
   }
-
-  post-processor "compress" {
-    compression_level = 1
-    output = "raspberry-pi.img.zip"
-  }
-
-  // non funziona come vogliamo crea lo sha del file prima di essere zippato
-  // post-processor "checksum" {
-  //   checksum_types = ["sha256"]
-  //   output = "raspberry-pi.img.zip.{{.ChecksumType}}"
-  // }
 
 }
 
