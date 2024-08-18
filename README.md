@@ -14,13 +14,13 @@ Semplice comando `make init` per l'ambiente di base, in questa fase sara' creata
 # Config
 Il file di riferimento per creare l'immagine si trova qui `build_dir/bitprepared.pkr.hcl`; La parte invece che interessa di piu' per cambiare il comportamento e' la parte ansible dove le variabili di configurazione sono nel file `build_dir/blackbox/group_vars/all.yml`. In questo file va configurata opportunamente `webserver_static_sites_with_game` che contiene l'elenco dei giochi per postazione (1 postazione, 1 gioco).
 la directory dei game e' `build_dir/blackbox/files/sites` e dentro andranno create le cartelle delle postazioni.
-Es su `webserver_static_sites_with_game` abbiamo attualmente configurato:
+Es su `webserver_static_sites_with_game` , attualmente ha solo un sample `blackbox.costigiola.net`, abbiamo commentato la configurazione per le sq.:
  - arancio.costigiola.net
  - blu.costigiola.net
  - oro.costigiola.net
  - rosso.costigiola.net
 
-Attenzione che per come e' l'export dei game, il nome del gioco e' da mettere nella variabile `webserver_static_sites_with_game` come percorso di ingresso del game.
+Attenzione: nella cartella della sq. va l'index.html di presentazione e una sottocartella con il gioco.
 
 # Build image raspberry
 Per creare l'immagine raspberry basta dare `make`
