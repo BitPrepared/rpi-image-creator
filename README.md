@@ -9,7 +9,7 @@
  - zip 
 
 ## Creazione Enviroment
-Semplice comando `make init` per l'ambiente di base, poi `make docker` per creare l'immagine docker con cui lavoreremo, per ripulire la build `make clean-docker`
+Semplice comando `make init` per l'ambiente di base, in questa fase sara' creata un'immagine docker che se necessario in futuro si puo' ricreare con `make docker`; per ripulire la build di docker `make clean-docker`
 
 # Config
 Il file di riferimento per creare l'immagine si trova qui `build_dir/bitprepared.pkr.hcl`; La parte invece che interessa di piu' per cambiare il comportamento e' la parte ansible dove le variabili di configurazione sono nel file `build_dir/blackbox/group_vars/all.yml`. In questo file va configurata opportunamente `webserver_static_sites_with_game` che contiene l'elenco dei giochi per postazione (1 postazione, 1 gioco).

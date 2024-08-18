@@ -3,17 +3,17 @@ VERSION=bookworm
 PACKER_BASE_FILE=bitprepared.pkr.hcl
 PACKER_FILE=game.pkr.hcl
 
-# primo step del run
+build:
+	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build ${PACKER_BASE_FILE}
+
 init:
 	./init_packer.sh
+	docker image build --build-arg BUILDKIT_INLINE_CACHE=1 --progress=plain -t $(IMAGE_NAME):$(VERSION) -t $(IMAGE_NAME):latest .
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) init /root/.packerconfig.pkr.hcl
 
 # default - creazione immagine docker di supporto per la generazione delle immagini specializzate
 docker:
 	docker image build --build-arg BUILDKIT_INLINE_CACHE=1 --progress=plain -t $(IMAGE_NAME):$(VERSION) -t $(IMAGE_NAME):latest .
-
-build:
-	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build ${PACKER_BASE_FILE}
 
 run-game:
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' ${PACKER_FILE}
