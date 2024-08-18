@@ -15,10 +15,10 @@ init:
 docker:
 	docker image build --build-arg BUILDKIT_INLINE_CACHE=1 --progress=plain -t $(IMAGE_NAME):$(VERSION) -t $(IMAGE_NAME):latest .
 
-run-game:
+build-first:
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' ${PACKER_FILE}
 
-run-all:
+build-all:
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' ${PACKER_FILE}
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=2' ${PACKER_FILE}
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=3' ${PACKER_FILE}

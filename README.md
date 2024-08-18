@@ -28,11 +28,11 @@ Per ripulire l'immagine generata `make clean`.
 
 Indicative Time: 15 minutes 46 seconds
 
-Per fare una immagine finale del grande gioco dare `make run-game`
+Per fare una immagine finale del grande gioco dare `make build-first`
 
 Indicative Time: 2 minutes 23 seconds
 
-Per tutti e 4 le immagini  dare `make run-all`
+Per tutti e 4 le immagini  dare `make build-all`
 
 Indicative Time:	10 minutes 4 seconds 
 
