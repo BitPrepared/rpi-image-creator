@@ -16,7 +16,6 @@ run:
 run-game:
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' game.pkr.hcl
 
-
 run-all:
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' game.pkr.hcl
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=2' game.pkr.hcl
@@ -24,7 +23,7 @@ run-all:
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=4' game.pkr.hcl
 
 copy:
-	dd bs=4M if=./build_dir/raspberry-pi-2.img of=/dev/sdb status=progress conv=fsync
+	dd bs=4M if=./build_dir/raspberry-pi-1.img of=/dev/sdb status=progress conv=fsync
 
 connect-otg:
 	ssh pi@192.168.42.42

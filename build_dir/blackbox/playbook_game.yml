@@ -56,6 +56,6 @@
       become_user: root 
       ansible.builtin.replace:
         path: "{{ item.rootGame }}/index.html"
-        regexp: 'http://code.jquery.org'
-        replace: 'assets (http://code.jquery.com/assets/g)'
+        regexp: 'http://code.jquery.com'
+        replace: 'assets'
       with_items: "{{ webserver_static_sites_with_game }}"
