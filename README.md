@@ -1,17 +1,15 @@
 # Installazione
 
-## Primo step
-```
-git clone https://github.com/mkaczanowski/packer-builder-arm
+## Requirements
 
-cd packer-builder-arm
+ - packer
+ - docker 
+ - python
+ - bash 
+ - zip 
 
-docker build -t packer-builder-arm:local -f docker/Dockerfile .
-```
-Per semplicita' e' stato creato il file `init.sh`.
-
-## Secondo step
-Semplice comando `make` per creare l'immagine docker con cui lavoreremo, per ripulire la build `make clean-docker`
+## Creazione Enviroment
+Semplice comando `make init` per l'ambiente di base, poi `make docker` per creare l'immagine docker con cui lavoreremo, per ripulire la build `make clean-docker`
 
 # Config
 Il file di riferimento per creare l'immagine si trova qui `build_dir/bitprepared.pkr.hcl`; La parte invece che interessa di piu' per cambiare il comportamento e' la parte ansible dove le variabili di configurazione sono nel file `build_dir/blackbox/group_vars/all.yml`. In questo file va configurata opportunamente `webserver_static_sites_with_game` che contiene l'elenco dei giochi per postazione (1 postazione, 1 gioco).
@@ -21,15 +19,16 @@ Es su `webserver_static_sites_with_game` abbiamo attualmente configurato:
  - blu.costigiola.net
  - oro.costigiola.net
  - rosso.costigiola.net
+
 Attenzione che per come e' l'export dei game, il nome del gioco e' da mettere nella variabile `webserver_static_sites_with_game` come percorso di ingresso del game.
 
 # Build image raspberry
-Per creare l'immagine raspberry basta dare `make run`
+Per creare l'immagine raspberry basta dare `make`
 Per ripulire l'immagine generata `make clean`.
 
 Indicative Time: 15 minutes 46 seconds
 
-Per fare l'immagine finale dare `make run-game`
+Per fare una immagine finale del grande gioco dare `make run-game`
 
 Indicative Time: 2 minutes 23 seconds
 
@@ -39,7 +38,7 @@ Indicative Time:	10 minutes 4 seconds
 
 # Accesso
 ## Wifi
-La wifi della blackbox e' SSID: `blackbox-1` (`blackbox-2`,..), password: `blackbox`
+La wifi della blackbox e' SSID: `blackbox-1` (`blackbox-2`,..), password: `blackbox`. Attenzione che android chiedera' ogni volta se rimanere connessi perche' non c'e' internet, mettere la spunta ricorda e acettare di non andare su internet.
 
 ## SSH
 L'immagine viene creata con un utente avente Username: `pi` , Password: `r3notaRE` , questa cosa 

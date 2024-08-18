@@ -1,26 +1,28 @@
 IMAGE_NAME="bitprepared/blackbox-builder"
-VERSION=bullseye
-PACKER_FILE=bitprepared.pkr.hcl
-
-# default - creazione immagine docker di supporto per la generazione delle immagini specializzate
-build:
-	docker image build --build-arg BUILDKIT_INLINE_CACHE=1 --progress=plain -t $(IMAGE_NAME):$(VERSION) -t $(IMAGE_NAME):latest .
+VERSION=bookworm
+PACKER_BASE_FILE=bitprepared.pkr.hcl
+PACKER_FILE=game.pkr.hcl
 
 # primo step del run
 init:
+	./init_packer.sh
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) init /root/.packerconfig.pkr.hcl
 
-run:
-	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build ${PACKER_FILE}
+# default - creazione immagine docker di supporto per la generazione delle immagini specializzate
+docker:
+	docker image build --build-arg BUILDKIT_INLINE_CACHE=1 --progress=plain -t $(IMAGE_NAME):$(VERSION) -t $(IMAGE_NAME):latest .
+
+build:
+	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build ${PACKER_BASE_FILE}
 
 run-game:
-	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' game.pkr.hcl
+	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' ${PACKER_FILE}
 
 run-all:
-	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' game.pkr.hcl
-	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=2' game.pkr.hcl
-	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=3' game.pkr.hcl
-	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=4' game.pkr.hcl
+	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=1' ${PACKER_FILE}
+	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=2' ${PACKER_FILE}
+	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=3' ${PACKER_FILE}
+	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=4' ${PACKER_FILE}
 
 copy:
 	dd bs=4M if=./build_dir/raspberry-pi-1.img of=/dev/sdb status=progress conv=fsync
