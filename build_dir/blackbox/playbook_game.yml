@@ -11,6 +11,12 @@
       hostname:
         name: "{{ hostname }}"
 
+    - name: Generate /etc/hosts file (with games)
+      become_user: root
+      template:
+        src=etc/hosts.j2
+        dest=/etc/hosts
+
     - name: Configure hostapd
       become_user: root
       template:

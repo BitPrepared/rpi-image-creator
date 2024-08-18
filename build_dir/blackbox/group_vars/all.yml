@@ -97,18 +97,18 @@ webserver_static_sites_with_game:
 - name: blackbox.costigiola.net
   root: /usr/share/nginx/blackbox.costigiola.net
   rootGame: /usr/share/nginx/blackbox.costigiola.net/StarQuiz
-- name: oro.costigiola.net
-  root: /usr/share/nginx/oro.costigiola.net
-  rootGame: /usr/share/nginx/oro.costigiola.net/giocooca
-- name: rosso.costigiola.net
-  root: /usr/share/nginx/rosso.costigiola.net
-  rootGame: /usr/share/nginx/rosso.costigiola.net/SpaceShooter
-- name: arancio.costigiola.net
-  root: /usr/share/nginx/arancio.costigiola.net
-  rootGame: /usr/share/nginx/arancio.costigiola.net/Cluedo
-- name: blu.costigiola.net
-  root: /usr/share/nginx/blu.costigiola.net
-  rootGame: /usr/share/nginx/blu.costigiola.net/StickFighter
+# - name: oro.costigiola.net
+#   root: /usr/share/nginx/oro.costigiola.net
+#   rootGame: /usr/share/nginx/oro.costigiola.net/giocooca
+# - name: rosso.costigiola.net
+#   root: /usr/share/nginx/rosso.costigiola.net
+#   rootGame: /usr/share/nginx/rosso.costigiola.net/SpaceShooter
+# - name: arancio.costigiola.net
+#   root: /usr/share/nginx/arancio.costigiola.net
+#   rootGame: /usr/share/nginx/arancio.costigiola.net/Cluedo
+# - name: blu.costigiola.net
+#   root: /usr/share/nginx/blu.costigiola.net
+#   rootGame: /usr/share/nginx/blu.costigiola.net/StickFighter
 
 # roles/dnsmasq/defaults/main.yml
 dnsmasq_domain_needed: true
