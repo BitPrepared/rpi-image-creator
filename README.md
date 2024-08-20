@@ -23,7 +23,7 @@ Es su `webserver_static_sites_with_game` , attualmente ha solo un sample `blackb
 Attenzione: nella cartella della sq. va l'index.html di presentazione e una sottocartella con il gioco.
 
 # Build image raspberry
-Per creare l'immagine raspberry basta dare `make`
+Per creare l'immagine raspberry base basta dare `make`
 Per ripulire l'immagine generata `make clean`.
 
 Indicative Time: 15 minutes 46 seconds
