@@ -45,6 +45,18 @@ L'immagine viene creata con un utente avente Username: `pi` , Password: `r3notaR
 e' definita di base nel file `build_dir/blackbox/provision-raspberry.sh` e poi sovrascritta a runtime 
 con il comando ansible nel playbook `build_dir/blackbox/playbook.yml`
 
+
+## Setup OTG locale
+```
+dmesg | grep cdc_subset | grep rename
+...
+ifconfig enp0s20f0u1i1 192.168.1.2 up
+...
+ping 192.168.42.42
+```
+Con il primo comando ottieni il nome dell'interfaccia
+
+
 # Local debug image
 
 ## Mount image
