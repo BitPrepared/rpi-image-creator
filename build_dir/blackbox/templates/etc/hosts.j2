@@ -5,6 +5,7 @@ ff02::1		ip6-allnodes
 ff02::2		ip6-allrouters
 
 192.168.42.42 {{ hostname }}
+192.168.1.1 google.com gstatic.com
 
 {% for item in webserver_static_sites %}
 192.168.1.1 {{ item.name }}

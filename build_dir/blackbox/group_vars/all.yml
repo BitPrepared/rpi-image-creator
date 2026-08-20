@@ -1,5 +1,6 @@
 ---
-hostname: blackbox-1
+hostname: blackbox-X
+sqname: xyz
 
 # -|----------------------------------------------------------------------------
 #  | Device Settings
@@ -90,25 +91,28 @@ boot_options:
 webserver_static_sites:
   - name: studio.code.org
     root: /usr/share/nginx/studio.code.org
+  - name: dsco.code.org
+    root: /usr/share/nginx/dsco.code.org
   - name: www.bitprepared.it
     root: /usr/share/nginx/www.bitprepared.it
  
 webserver_static_sites_with_game: 
 - name: blackbox.costigiola.net
-  root: /usr/share/nginx/blackbox.costigiola.net
-  rootGame: /usr/share/nginx/blackbox.costigiola.net/StarQuiz
-# - name: oro.costigiola.net
-#   root: /usr/share/nginx/oro.costigiola.net
-#   rootGame: /usr/share/nginx/oro.costigiola.net/giocooca
-# - name: rosso.costigiola.net
-#   root: /usr/share/nginx/rosso.costigiola.net
-#   rootGame: /usr/share/nginx/rosso.costigiola.net/SpaceShooter
+  root: /usr/share/nginx/2025/blackbox.costigiola.net
+  rootGame: /usr/share/nginx/2025/blackbox.costigiola.net/StarQuiz
+- name: oro.costigiola.net
+  root: /usr/share/nginx/2025/oro.costigiola.net
+  rootGame: /usr/share/nginx/2025/oro.costigiola.net/AppOro2025
+- name: rosso.costigiola.net
+  root: /usr/share/nginx/2025/rosso.costigiola.net
+  rootGame: /usr/share/nginx/2025/rosso.costigiola.net/AppRosso2025
+- name: blu.costigiola.net
+  root: /usr/share/nginx/2025/blu.costigiola.net
+  rootGame: /usr/share/nginx/2025/blu.costigiola.net/AppBlu2025
 # - name: arancio.costigiola.net
 #   root: /usr/share/nginx/arancio.costigiola.net
 #   rootGame: /usr/share/nginx/arancio.costigiola.net/Cluedo
-# - name: blu.costigiola.net
-#   root: /usr/share/nginx/blu.costigiola.net
-#   rootGame: /usr/share/nginx/blu.costigiola.net/StickFighter
+
 
 # roles/dnsmasq/defaults/main.yml
 dnsmasq_domain_needed: true
@@ -116,9 +120,9 @@ dnsmasq_bogus_priv: true
 dnsmasq_authoritative: true
 dnsmasq_expand_hosts: false
 dnsmasq_domain: costigiola.net
-dnsmasq_addn_hosts: true
+#dnsmasq_addn_hosts: true
 dnsmasq_listen_address: 192.168.1.1
-dnsmasq_interface: wlan0
+dnsmasq_interface: wlan0-ap
 
 #B1 cli, B2 cli autologin, B3 desktop, B4 desktop autologin
 BOOTBEHAVIOUR: B1 

@@ -6,7 +6,7 @@ start		{{ ip_range.start }}
 end			{{ ip_range.end }}
 
 # The interface that udhcpd will use
-interface	{{ wifi_adapter }}
+interface	{{ wifi_adapter }}-ap
 
 # The maximim number of leases (includes addressesd reserved
 # by OFFER's, DECLINE's, and ARP conficts)

@@ -3,9 +3,13 @@ variable "blid" {
     type = string
 }
 
+variable "sqname" {
+    type = string
+}
+
 variable "raspios_url" {
   type    = string
-  default = "file:///build/raspberry-pi.img.zip"
+  default = "file:///build/raspberry-pi-final.img.zip"
 }
 
 source "arm" "pi" {
@@ -13,7 +17,7 @@ source "arm" "pi" {
   file_target_extension = "zip"
   file_checksum_type    = "none"
   image_build_method    = "reuse"
-  image_path            = "raspberry-pi-${var.blid}.img"
+  image_path            = "raspberry-pi-${var.blid}-${var.sqname}.img"
   image_size            = "6G"
   image_type            = "dos"
   image_chroot_env      = ["PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"]
@@ -52,6 +56,7 @@ build {
       "-e ansible_host=/tmp/rpi_chroot",
       "-e ssid=blackbox-${var.blid}",
       "-e hostname=blackbox-${var.blid}",
+      "-e sqname=${var.sqname}",
       "-vvv"
       ]
     playbook_file   = "blackbox/playbook_game.yml"

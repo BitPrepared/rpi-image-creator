@@ -16,6 +16,91 @@
       template:
         src=etc/hosts.j2
         dest=/etc/hosts
+    
+    - name: Set authorized keys taken from url using lookup
+      become_user: root
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', playbook_dir + '/files/keys/dani.pub') }}"
+
+    - name: Configure getty
+      become_user: root
+      copy:
+        src: .bash_profile
+        dest: /root/.bash_profile
+
+    - name: Configura /etc/default/keyboard con template
+      become_user: root
+      ansible.builtin.template:
+        src: templates/keyboard.j2
+        dest: /etc/default/keyboard
+        owner: root
+        group: root
+        mode: '0644'
+      vars:
+        xkbmodel: "pc105"
+        xkblayout: "us"
+        xkbvariant: ""
+        xkboptions: ""
+        backspace: "guess"
+
+    - name: Configure network interfaces
+      become_user: root
+      template:
+        src: templates/interfaces.j2
+        dest: /etc/network/interfaces
+
+    - name: Enable and start wpa_supplicant@wlan0
+      become_user: root
+      ansible.builtin.systemd:
+        name: wpa_supplicant@wlan0
+        enabled: yes
+        state: started
+
+    - name: wpa_supplicant conf
+      become_user: root
+      copy:
+        dest: /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+        src: wpa-bitprepared.conf
+        mode: 0700
+
+    - name: wpa client
+      become_user: root
+      copy:
+        dest: /root/wlan-client.sh
+        src: wlan-client.sh
+        mode: 0700
+
+    - name: Ensure getty@tty1.service.d directory exists
+      become_user: root
+      ansible.builtin.file:
+        path: /etc/systemd/system/getty@tty1.service.d/
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Configure getty
+      become_user: root
+      copy:
+        src: getty-override.conf
+        dest: /etc/systemd/system/getty@tty1.service.d/override.conf
+
+    - name: Ensure /etc/systemd/system/udhcpd.service.d/ directory exists
+      become_user: root
+      ansible.builtin.file:
+        path: /etc/systemd/system/udhcpd.service.d/
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Configure udhcpd
+      become_user: root
+      copy:
+        src: wait-for-ifup.conf
+        dest: /etc/systemd/system/udhcpd.service.d/wait-for-ifup.conf
 
     - name: Configure hostapd
       become_user: root
@@ -31,14 +116,25 @@
         owner: root
         group: root
         mode: 0644
-      with_items: "{{ webserver_static_sites_with_game }}"
+      with_items: "{{ webserver_static_sites }}"
+
+    - name: Add static site config files
+      become_user: root
+      template:
+        src: etc/nginx/conf.d/site.conf.j2
+        dest: "/etc/nginx/conf.d/{{ item.name }}.conf"
+        owner: root
+        group: root
+        mode: 0644
+      with_items: "{{ webserver_static_sites_with_game | selectattr('name', 'match', '^' ~ sqname) | list }}"
+      #with_items: "{{ webserver_static_sites_with_game }}"
 
     - name: ensures assets dir exists
       become_user: root
       file: 
         path: "{{ item.rootGame }}/assets/"
         state: directory
-      with_items: "{{ webserver_static_sites_with_game }}"
+      with_items: "{{ webserver_static_sites_with_game | selectattr('name', 'match', '^' ~ sqname) | list }}"
 
     - name: Download jquery
       become_user: root
@@ -48,7 +144,7 @@
         owner: www-data
         group: www-data
         mode: 0755
-      with_items: "{{ webserver_static_sites_with_game }}"
+      with_items: "{{ webserver_static_sites_with_game | selectattr('name', 'match', '^' ~ sqname) | list }}"
 
     - name: change all https url to http
       become_user: root
@@ -56,7 +152,15 @@
         path: "{{ item.rootGame }}/index.html"
         regexp: 'https://'
         replace: 'http://'
-      with_items: "{{ webserver_static_sites_with_game }}"
+      with_items: "{{ webserver_static_sites_with_game | selectattr('name', 'match', '^' ~ sqname) | list }}"
+
+    - name: change all https url to http
+      become_user: root
+      ansible.builtin.replace:
+        path: "{{ item.rootGame }}/applab/applab-api.js"
+        regexp: 'https://'
+        replace: 'http://'
+      with_items: "{{ webserver_static_sites_with_game | selectattr('name', 'match', '^' ~ sqname) | list }}"
 
     - name: change jquery external to internal
       become_user: root 
@@ -64,4 +168,34 @@
         path: "{{ item.rootGame }}/index.html"
         regexp: 'http://code.jquery.com'
         replace: 'assets'
-      with_items: "{{ webserver_static_sites_with_game }}"
+      with_items: "{{ webserver_static_sites_with_game | selectattr('name', 'match', '^' ~ sqname) | list }}"
+
+    - name: change jsapi
+      become_user: root 
+      ansible.builtin.replace:
+        path: "{{ item.rootGame }}/applab/applab-api.js"
+        regexp: 'https://www.google.com/jsapi'
+        replace: 'assets/jsapi'
+      with_items: "{{ webserver_static_sites_with_game | selectattr('name', 'match', '^' ~ sqname) | list }}"
+
+    - name: Configure APT to use proxy
+      become_user: root 
+      ansible.builtin.copy:
+        dest: /etc/apt/apt.conf.d/00proxy
+        content: |
+          Acquire::http::Proxy "http://mirror.costigiola.bitprepared.it:3142";
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Configure udhcpd
+      become_user: root
+      template:
+        src: templates/udhcpd.conf.j2
+        dest: /etc/udhcpd.conf
+
+    - name: Riavvia udhcpd
+      become_user: root
+      systemd:
+        name: udhcpd
+        state: restarted

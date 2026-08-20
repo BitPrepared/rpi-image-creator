@@ -17,12 +17,17 @@ iface {{ lan_adapter }} inet manual
 {% endif %}
 
 auto {{ wifi_adapter }}
-iface {{ wifi_adapter }} inet static
+iface {{ wifi_adapter }} inet manual
+  pre-up /usr/sbin/rfclear
+  post-up /usr/sbin/iw phy phy0 interface add wlan0-ap type __ap
+#  post-up /sbin/dhclient -4 -v -1 wlan0 && /usr/sbin/ntpdate time.ien.it || true && fake-hwclock
+
+auto {{ wifi_adapter }}-ap
+iface {{ wifi_adapter }}-ap inet static
   address {{ own_ip }}
   netmask {{ subnet }}
   network {{ network }}
   broadcast {{ broadcast }}
-  post-up /usr/sbin/udhcpd -S /etc/udhcpd.conf
 
 allow-hotplug {{ otg_adapter }} 
 iface {{ otg_adapter }} inet static
@@ -30,5 +35,5 @@ iface {{ otg_adapter }} inet static
     netmask 255.255.255.0
     network 192.168.42.0
     broadcast 192.168.42.255
-    gateway 192.168.42.1
+
 
