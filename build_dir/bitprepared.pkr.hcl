@@ -1,7 +1,7 @@
 # reuse this long string
 variable "raspios_url" {
   type    = string
-  default = "https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2024-07-04/2024-07-04-raspios-bookworm-armhf.img.xz"
+  default = "https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2025-05-13/2025-05-13-raspios-bookworm-armhf.img.xz"
 }
 
 source "arm" "pi" {

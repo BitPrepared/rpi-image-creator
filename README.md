@@ -123,8 +123,9 @@ make            # = build di bitprepared.pkr.hcl
 L'immagine di partenza della **Fase 1** è definita dalla variabile `raspios_url`
 in `build_dir/bitprepared.pkr.hcl`:
 
-- **Corrente:** RaspiOS **Bookworm** (Debian 12), **armhf** (32-bit), release **2024-07-04**
-- URL: `https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2024-07-04/2024-07-04-raspios-bookworm-armhf.img.xz`
+- **Corrente:** RaspiOS **Bookworm** (Debian 12), **armhf** (32-bit), release **2025-05-13**
+- URL: `https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2025-05-13/2025-05-13-raspios-bookworm-armhf.img.xz`
+- SHA256: `7b2ffd34ce69dbc956c5171ffb367e9d4a1921f2525671919f2689225dfdedc8`
 
 Per vederla senza aprire il file:
 
@@ -134,19 +135,30 @@ make base-image-view     # stampa URL, codename Debian e data di release estratt
 
 #### Aggiornare l'immagine di base
 
-**Sì, può essere aggiornata.** Le release più recenti di RaspiOS Bookworm armhf
-sono successive al 2024-07-04 (es. release del 2025); l'elenco ufficiale è su
-<https://www.raspberrypi.com/software/operating-systems/>.
-
-Per aggiornare basta modificare **una sola riga** — il `default` di
+**Sì, può essere aggiornata** modificando **una sola riga** — il `default` di
 `raspios_url` in `build_dir/bitprepared.pkr.hcl`. Il checksum viene recuperato
-automaticamente (`file_checksum_url = "${var.raspios_url}.sha256"`), quindi la
-naming convention `raspios_armhf-<DATA>/<DATA>-raspios-bookworm-armhf.img.xz`
-deve solo essere rispettata. Esempio:
+automaticamente (`file_checksum_url = "${var.raspios_url}.sha256"`).
+
+L'elenco delle release è su
+<https://downloads.raspberrypi.org/raspios_armhf/images/>. Situazione a
+agosto 2026:
+
+| Release | Debian | Note |
+|---------|:------:|------|
+| `raspios_armhf-2025-05-13` | 12 bookworm | **Ultima bookworm** (in uso) |
+| `raspios_armhf-2025-10-02` | 13 trixie | Prima trixie stabile |
+| `raspios_armhf-2025-12-04` | 13 trixie | Ultima in assoluto |
+
+> ⚠️ Il provisioning Ansible è scritto per **bookworm**: passare a **trixie**
+> (Debian 13) non è solo un cambio di URL — cambia `raspi-config nonint`, il
+> boot, Wayland di default e vari pacchetti — e richiede di ritestare i
+> playbook. Restare su bookworm per aggiornamenti a basso rischio.
+
+Esempio di cambio versione (es. all'ultima trixie):
 
 ```hcl
 variable "raspios_url" {
-  default = "https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2025-11-24/2025-11-24-raspios-bookworm-armhf.img.xz"
+  default = "https://downloads.raspberrypi.org/raspios_armhf/images/raspios_armhf-2025-12-04/2025-12-04-raspios-trixie-armhf.img.xz"
 }
 ```
 

@@ -13,3 +13,7 @@ RUN --mount=type=cache,target=/var/cache/apt,id=apt \
     /var/cache/apt/archives/partial/*.deb /var/cache/apt/*.bin /var/lib/apt/lists/* || true)
 
 COPY .packerconfig.pkr.hcl /root/.packerconfig.pkr.hcl
+
+# Disabilita il checkpoint HashiCorp (update-check/telemetria): elimina gli
+# [ERR] Checkpoint error nei log quando la rete e' lenta ad avviare i plugin
+ENV CHECKPOINT_DISABLE=1
