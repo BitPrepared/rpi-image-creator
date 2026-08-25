@@ -98,20 +98,20 @@ webserver_static_sites:
  
 webserver_static_sites_with_game: 
 - name: blackbox.costigiola.net
-  root: /usr/share/nginx/2025/blackbox.costigiola.net
-  rootGame: /usr/share/nginx/2025/blackbox.costigiola.net/StarQuiz
+  root: /usr/share/nginx/2026/blackbox.costigiola.net
+  rootGame: /usr/share/nginx/2026/blackbox.costigiola.net/StarQuiz
 - name: oro.costigiola.net
-  root: /usr/share/nginx/2025/oro.costigiola.net
-  rootGame: /usr/share/nginx/2025/oro.costigiola.net/AppOro2025
+  root: /usr/share/nginx/2026/oro.costigiola.net
+  rootGame: /usr/share/nginx/2026/oro.costigiola.net/Remix_UntitledProject
 - name: rosso.costigiola.net
-  root: /usr/share/nginx/2025/rosso.costigiola.net
-  rootGame: /usr/share/nginx/2025/rosso.costigiola.net/AppRosso2025
+  root: /usr/share/nginx/2026/rosso.costigiola.net
+  rootGame: /usr/share/nginx/2026/rosso.costigiola.net/i_quattro_amici
 - name: blu.costigiola.net
-  root: /usr/share/nginx/2025/blu.costigiola.net
-  rootGame: /usr/share/nginx/2025/blu.costigiola.net/AppBlu2025
-# - name: arancio.costigiola.net
-#   root: /usr/share/nginx/arancio.costigiola.net
-#   rootGame: /usr/share/nginx/arancio.costigiola.net/Cluedo
+  root: /usr/share/nginx/2026/blu.costigiola.net
+  rootGame: /usr/share/nginx/2026/blu.costigiola.net/Remix_Infernoblu
+- name: arancio.costigiola.net
+  root: /usr/share/nginx/arancio.costigiola.net
+  rootGame: /usr/share/nginx/2026/arancio.costigiola.net/Remix_orangegame
 
 
 # roles/dnsmasq/defaults/main.yml

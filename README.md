@@ -189,7 +189,7 @@ make build-all      # oro, arancio, blu, rosso
 ### Scrittura su scheda SD
 
 ```bash
-make copy      # dd su /dev/sdb (verificare il dispositivo!)
+make copy      # chiede il dispositivo (es. sda/sdb) e conferma prima di scrivere
 ```
 
 ---
@@ -413,6 +413,6 @@ cp build_dir/raspberry-pi.img.zip build_dir/raspberry-pi-final.img.zip
 # 3. immagini delle squadre
 make build-all        # oppure make build-first per una sola
 
-# 4. scrittura su SD e accensione
+# 4. scrittura su SD (chiede il dispositivo e la conferma) e accensione
 make copy
 ```

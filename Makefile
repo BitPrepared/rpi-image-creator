@@ -26,10 +26,57 @@ build-all: ## FASE 2 - immagini di tutte le squadre (oro, arancio, blu, rosso)
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=3' -var 'sqname=blu' 	${PACKER_FILE}
 	docker run --rm -it --privileged -v /dev:/dev -v ${PWD}/build_dir:/build $(IMAGE_NAME):$(VERSION) build -var 'blid=4' -var 'sqname=rosso' 	${PACKER_FILE}
 
-copy: ## Scrive l'immagine su scheda SD (/dev/sdb - verificare il dispositivo!)
-	dd bs=4M if=./build_dir/raspberry-pi-1.img of=/dev/sdb status=progress conv=fsync
+copy: ## Scrive l'immagine su SD (scelta interattiva di immagine e dispositivo, con conferma)
+	@echo "Immagini disponibili:"; \
+	n=0; \
+	for f in ./build_dir/*.img; do \
+		[ -f "$$f" ] || continue; \
+		n=$$((n+1)); \
+		printf "  %s) %-50s %s\n" "$$n" "$$f" "$$(du -h "$$f" | cut -f1)"; \
+	done; \
+	[ "$$n" -gt 0 ] || { echo "ERRORE: nessuna immagine .img in build_dir/. Esegui prima 'make build-first'."; exit 1; }; \
+	printf "Quale immagine scrivere? [1-%s]: " "$$n"; \
+	read -r idx; \
+	case "$$idx" in ''|*[!0-9]*) echo "Scelta non valida."; exit 1;; esac; \
+	[ "$$idx" -ge 1 ] && [ "$$idx" -le "$$n" ] || { echo "Scelta fuori intervallo."; exit 1; }; \
+	img=""; i=0; \
+	for f in ./build_dir/*.img; do \
+		i=$$((i+1)); \
+		if [ "$$i" = "$$idx" ]; then img="$$f"; fi; \
+	done; \
+	echo; \
+	echo "Candidati (dischi rimovibili / USB / SD):"; \
+	cands=$$(lsblk -dno NAME,RM,TYPE,TRAN,SIZE,MODEL 2>/dev/null | awk '$$3=="disk" && ($$2==1 || $$4 ~ /^(usb|mmc|sdio)/)'); \
+	if [ -n "$$cands" ]; then echo "$$cands"; else \
+		echo "(nessun disco rimovibile trovato, ecco tutti i dischi:)"; \
+		lsblk -dno NAME,RM,TYPE,TRAN,SIZE,MODEL | awk '$$3=="disk"'; fi; \
+	printf "Su quale dispositivo scrivere? [solo il nome, es. sda - vuoto per annullare]: "; \
+	read -r dev; \
+	case "$$dev" in "") echo "Annullato."; exit 1;; */*) echo "Inserire solo il nome (es. sda), non il percorso completo."; exit 1;; esac; \
+	target="/dev/$$dev"; \
+	[ -b "$$target" ] || { echo "ERRORE: $$target non esiste o non e' un block device."; exit 1; }; \
+	if lsblk -lno MOUNTPOINT "$$target" 2>/dev/null | grep -q .; then \
+		echo "ERRORE: $$target ha partizioni montate, smontale prima (umount)."; exit 1; fi; \
+	echo; \
+	echo "Dispositivo scelto:"; lsblk -dno NAME,SIZE,TRAN,MODEL "$$target"; \
+	echo; \
+	echo "ATTENZIONE: '$$target' verra' COMPLETAMENTE SOVRASCRITTO con $$img, dati persi!"; \
+	printf "Confermi? Scrivere YES per procedere: "; \
+	read -r ok; \
+	[ "$$ok" = "YES" ] || { echo "Annullato."; exit 1; }; \
+	dd bs=4M if=$$img of=$$target status=progress conv=fsync
 
-connect-otg: ## SSH via cavo USB OTG (pi@192.168.42.42)
+connect-otg: ## SSH via cavo USB OTG (trova l'interfaccia, assegna 192.168.42.1 e connette)
+	@ifc=""; \
+	for n in $$(ls /sys/class/net 2>/dev/null); do \
+		drv=$$(basename $$(readlink -f /sys/class/net/$$n/device/driver 2>/dev/null) 2>/dev/null); \
+		if [ "$$drv" = "cdc_subset" ]; then ifc="$$n"; break; fi; \
+	done; \
+	[ -n "$$ifc" ] || { echo "ERRORE: nessuna interfaccia OTG (cdc_subset) trovata. Cavo collegato e Pi avviata?"; exit 1; }; \
+	echo "Interfaccia OTG: $$ifc"; \
+	sudo ip link set "$$ifc" up; \
+	ip -4 addr show dev "$$ifc" | grep -q 'inet 192\.168\.42\.' || sudo ip addr add 192.168.42.1/24 dev "$$ifc"; \
+	ping -c 2 -W 2 192.168.42.42 || echo "ATTENZIONE: la Pi non risponde al ping, provo comunque l'ssh..."; \
 	ssh pi@192.168.42.42
 
 clean: ## Rimuove l'immagine base generata (build_dir/raspberry-pi.img)
