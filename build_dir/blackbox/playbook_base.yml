@@ -79,6 +79,31 @@
         force_apt_get: yes
         cache_valid_time: 3600
 
+    - name: Configure root authorized_keys
+      ansible.posix.authorized_key:
+        user: root
+        state: present
+        key: '{{ item }}'
+      with_file:
+        - config/public_keys/root-blackhole-2023.pub
+        - config/public_keys/admin_scout-blackhole-2023.pub
+
+    - name: set root password to the usual one
+      ansible.builtin.user:
+        name: root
+        password: "$6$bREtj9vkOJqhK2oW$BKtSEF/3DpqNfiAd3zlnInoY5oyJuMh43mESR8FMxPkyXqXkE6wfKsfv3syEBN9765iisD9OewrNXLlfQJgtd0"
+
+    - name: Enable Root Login
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: "PermitRootLogin yes"
+        state: present
+        backup: true
+      become: true
+      notify:
+        - restart ssh
+
     # Disable NetworkManager and connman 
     - name: Check which network manager is installed
       ansible.builtin.stat:
@@ -352,28 +377,3 @@
       copy:
         dest: /boot/userconf.txt 
         content: "pi:$6$rz9STc6t7Sqowjo7$IGlgGK/gd22WV1/RIaWuEQHYIZ6O2eLPHPcH.LYfoz6Z5tywBcnvffsE0mSImLo3t.PbYBBriOHk1reVuPHvX/"
-
-    - name: Configure root authorized_keys
-      ansible.posix.authorized_key:
-        user: root
-        state: present
-        key: '{{ item }}'
-      with_file:
-        - config/public_keys/root-blackhole-2023.pub
-        - config/public_keys/admin_scout-blackhole-2023.pub
-
-    - name: set root password to the usual one
-      ansible.builtin.user:
-        name: root
-        password: "$6$bREtj9vkOJqhK2oW$BKtSEF/3DpqNfiAd3zlnInoY5oyJuMh43mESR8FMxPkyXqXkE6wfKsfv3syEBN9765iisD9OewrNXLlfQJgtd0"
-
-    - name: Enable Root Login
-      lineinfile:
-        dest: /etc/ssh/sshd_config
-        regexp: '^PermitRootLogin'
-        line: "PermitRootLogin yes"
-        state: present
-        backup: true
-      become: true
-      notify:
-        - restart ssh
