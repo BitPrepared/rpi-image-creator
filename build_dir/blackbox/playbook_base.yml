@@ -59,6 +59,7 @@
         enabled: true
 
     - name: setup apt proxy
+      become_user: root
       ansible.builtin.copy:
         src: config/packages/00proxy
         dest: /etc/apt/apt.conf.d/00proxy
@@ -67,6 +68,7 @@
         mode: '0644'
 
     - name: Remove apt proxy from apt.conf
+      become_user: root
       ansible.builtin.lineinfile:
         path: /etc/apt/apt.conf
         regexp: '^\s*Acquire::(http|https|ftp)::Proxy\b'
@@ -79,7 +81,15 @@
         force_apt_get: yes
         cache_valid_time: 3600
 
+    - name: Create a directory if it does not exist
+      become_user: root
+      ansible.builtin.file:
+        path: /root/.ssh
+        state: directory
+        mode: '0700'
+
     - name: Configure root authorized_keys
+      become_user: root
       ansible.posix.authorized_key:
         user: root
         state: present
@@ -89,23 +99,23 @@
         - config/public_keys/admin_scout-blackhole-2023.pub
 
     - name: set root password to the usual one
+      become_user: root
       ansible.builtin.user:
         name: root
         password: "$6$bREtj9vkOJqhK2oW$BKtSEF/3DpqNfiAd3zlnInoY5oyJuMh43mESR8FMxPkyXqXkE6wfKsfv3syEBN9765iisD9OewrNXLlfQJgtd0"
 
     - name: Enable Root Login
+      become_user: root
       lineinfile:
         dest: /etc/ssh/sshd_config
         regexp: '^PermitRootLogin'
         line: "PermitRootLogin yes"
         state: present
         backup: true
-      become: true
-      notify:
-        - restart ssh
 
     # Disable NetworkManager and connman 
     - name: Check which network manager is installed
+      become_user: root
       ansible.builtin.stat:
         path: "{{ item }}"
       register: netmgr
@@ -116,10 +126,10 @@
     # Everything below runs only where NetworkManager or connman are present
     # After the purge the binary is gone, so re-runs are a no-op.
     - name: Migrate to ifupdown
-      when: netmgr_present
       block:
 
         - name: Install ifupdown and the DHCP client
+          become_user: root
           ansible.builtin.apt:
             name:
               - ifupdown
@@ -128,6 +138,7 @@
             update_cache: true
 
         - name: Ensure /etc/systemd/network exists
+          become_user: root
           ansible.builtin.file:
             path: /etc/systemd/network
             state: directory
@@ -136,6 +147,7 @@
             mode: "0755"
 
         - name: Prevent NetworkManager from being pulled back in by Recommends
+          become_user: root
           ansible.builtin.copy:
             content: |
               Package: network-manager*
@@ -147,6 +159,7 @@
             mode: "0644"
 
         - name: Enable ifupdown networking
+          become_user: root
           ansible.builtin.systemd_service:
             name: networking
             enabled: true
@@ -155,6 +168,7 @@
         # Disabled only, NOT stopped: stopping NetworkManager here would tear
         # down the link and kill the Ansible connection before the reboot.
         - name: Disable NetworkManager units
+          become_user: root
           ansible.builtin.systemd_service:
             name: "{{ item }}"
             enabled: false
@@ -166,6 +180,7 @@
         # Disabled only, NOT stopped: stopping connman here would tear down
         # the link and kill the Ansible connection before the reboot.
         - name: Disable connman units
+          become_user: root
           ansible.builtin.systemd_service:
             name: "{{ item }}"
             enabled: false
@@ -176,12 +191,14 @@
           failed_when: false
 
         - name: Reboot into the new configuration
+          become_user: root
           ansible.builtin.reboot:
             reboot_timeout: 600
             msg: "Reboot for ifupdown migration and legacy interface names"
 
         - name: Purge NetworkManager
           # connman ships its own dhcp client and hijacks interfaces on start
+          become_user: root
           ansible.builtin.apt:
             name:
               - network-manager
@@ -194,6 +211,7 @@
             autoremove: true
 
         - name: Prevent connman from being pulled back in by Recommends
+          become_user: root
           ansible.builtin.copy:
             content: |
               Package: connman*
