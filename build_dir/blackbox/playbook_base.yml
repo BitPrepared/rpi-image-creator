@@ -190,12 +190,6 @@
             - connman-wait-online
           failed_when: false
 
-        - name: Reboot into the new configuration
-          become_user: root
-          ansible.builtin.reboot:
-            reboot_timeout: 600
-            msg: "Reboot for ifupdown migration and legacy interface names"
-
         - name: Purge NetworkManager
           # connman ships its own dhcp client and hijacks interfaces on start
           become_user: root
