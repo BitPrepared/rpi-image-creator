@@ -58,12 +58,127 @@
         service: resize2fs_once
         enabled: true
 
+    - name: setup apt proxy
+      ansible.builtin.copy:
+        src: config/packages/00proxy
+        dest: /etc/apt/apt.conf.d/00proxy
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Remove apt proxy from apt.conf
+      ansible.builtin.lineinfile:
+        path: /etc/apt/apt.conf
+        regexp: '^\s*Acquire::(http|https|ftp)::Proxy\b'
+        state: absent
+
     - name: Update Repos
       become_user: root
       ansible.builtin.apt:
         update_cache: yes
         force_apt_get: yes
         cache_valid_time: 3600
+
+    # Disable NetworkManager and connman 
+    - name: Check which network manager is installed
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: netmgr
+      loop:
+        - /usr/sbin/NetworkManager
+        - /usr/sbin/connmand
+
+    # Everything below runs only where NetworkManager or connman are present
+    # After the purge the binary is gone, so re-runs are a no-op.
+    - name: Migrate to ifupdown
+      when: netmgr_present
+      block:
+
+        - name: Install ifupdown and the DHCP client
+          ansible.builtin.apt:
+            name:
+              - ifupdown
+              - isc-dhcp-client
+            state: present
+            update_cache: true
+
+        - name: Ensure /etc/systemd/network exists
+          ansible.builtin.file:
+            path: /etc/systemd/network
+            state: directory
+            owner: root
+            group: root
+            mode: "0755"
+
+        - name: Prevent NetworkManager from being pulled back in by Recommends
+          ansible.builtin.copy:
+            content: |
+              Package: network-manager*
+              Pin: release *
+              Pin-Priority: -1
+            dest: /etc/apt/preferences.d/no-network-manager
+            owner: root
+            group: root
+            mode: "0644"
+
+        - name: Enable ifupdown networking
+          ansible.builtin.systemd_service:
+            name: networking
+            enabled: true
+            masked: false
+
+        # Disabled only, NOT stopped: stopping NetworkManager here would tear
+        # down the link and kill the Ansible connection before the reboot.
+        - name: Disable NetworkManager units
+          ansible.builtin.systemd_service:
+            name: "{{ item }}"
+            enabled: false
+          loop:
+            - NetworkManager
+            - NetworkManager-wait-online
+          failed_when: false
+
+        # Disabled only, NOT stopped: stopping connman here would tear down
+        # the link and kill the Ansible connection before the reboot.
+        - name: Disable connman units
+          ansible.builtin.systemd_service:
+            name: "{{ item }}"
+            enabled: false
+          loop:
+            - connman
+            - connman-vpn
+            - connman-wait-online
+          failed_when: false
+
+        - name: Reboot into the new configuration
+          ansible.builtin.reboot:
+            reboot_timeout: 600
+            msg: "Reboot for ifupdown migration and legacy interface names"
+
+        - name: Purge NetworkManager
+          # connman ships its own dhcp client and hijacks interfaces on start
+          ansible.builtin.apt:
+            name:
+              - network-manager
+              - network-manager-gnome
+              - connman
+              - connman-gtk
+              - connman-vpn
+            state: absent
+            purge: true
+            autoremove: true
+
+        - name: Prevent connman from being pulled back in by Recommends
+          ansible.builtin.copy:
+            content: |
+              Package: connman*
+              Pin: release *
+              Pin-Priority: -1
+            dest: /etc/apt/preferences.d/no-connman
+            owner: root
+            group: root
+            mode: "0644"
+
 
     - name: Install kitty-terminfo
       become_user: root
@@ -261,103 +376,3 @@
       become: true
       notify:
         - restart ssh
-
-    
-    - name: Check which network manager is installed
-      ansible.builtin.stat:
-        path: "{{ item }}"
-      register: netmgr
-      loop:
-        - /usr/sbin/NetworkManager
-        - /usr/sbin/connmand
-
-    # Everything below runs only where NetworkManager or connman are present
-    # After the purge the binary is gone, so re-runs are a no-op.
-    - name: Migrate to ifupdown
-      when: netmgr_present
-      block:
-
-        - name: Install ifupdown and the DHCP client
-          ansible.builtin.apt:
-            name:
-              - ifupdown
-              - isc-dhcp-client
-            state: present
-            update_cache: true
-
-        - name: Ensure /etc/systemd/network exists
-          ansible.builtin.file:
-            path: /etc/systemd/network
-            state: directory
-            owner: root
-            group: root
-            mode: "0755"
-
-        - name: Prevent NetworkManager from being pulled back in by Recommends
-          ansible.builtin.copy:
-            content: |
-              Package: network-manager*
-              Pin: release *
-              Pin-Priority: -1
-            dest: /etc/apt/preferences.d/no-network-manager
-            owner: root
-            group: root
-            mode: "0644"
-
-        - name: Enable ifupdown networking
-          ansible.builtin.systemd_service:
-            name: networking
-            enabled: true
-            masked: false
-
-        # Disabled only, NOT stopped: stopping NetworkManager here would tear
-        # down the link and kill the Ansible connection before the reboot.
-        - name: Disable NetworkManager units
-          ansible.builtin.systemd_service:
-            name: "{{ item }}"
-            enabled: false
-          loop:
-            - NetworkManager
-            - NetworkManager-wait-online
-          failed_when: false
-
-        # Disabled only, NOT stopped: stopping connman here would tear down
-        # the link and kill the Ansible connection before the reboot.
-        - name: Disable connman units
-          ansible.builtin.systemd_service:
-            name: "{{ item }}"
-            enabled: false
-          loop:
-            - connman
-            - connman-vpn
-            - connman-wait-online
-          failed_when: false
-
-        - name: Reboot into the new configuration
-          ansible.builtin.reboot:
-            reboot_timeout: 600
-            msg: "Reboot for ifupdown migration and legacy interface names"
-
-        - name: Purge NetworkManager
-          # connman ships its own dhcp client and hijacks interfaces on start
-          ansible.builtin.apt:
-            name:
-              - network-manager
-              - network-manager-gnome
-              - connman
-              - connman-gtk
-              - connman-vpn
-            state: absent
-            purge: true
-            autoremove: true
-
-        - name: Prevent connman from being pulled back in by Recommends
-          ansible.builtin.copy:
-            content: |
-              Package: connman*
-              Pin: release *
-              Pin-Priority: -1
-            dest: /etc/apt/preferences.d/no-connman
-            owner: root
-            group: root
-            mode: "0644"
