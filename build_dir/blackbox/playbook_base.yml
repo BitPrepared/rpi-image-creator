@@ -250,6 +250,7 @@
       package:
         name:
           - userconf-pi
+          - cloud-init
         state: absent
 
     - name: Configure hostapd
@@ -364,6 +365,14 @@
         - nginx
         - dnsmasq
 
+    - name: Directory drop-in getty@tty1
+      ansible.builtin.file:
+        path: /etc/systemd/system/getty@tty1.service.d
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+  
     - name: remove autologin
       become_user: root
       file:
