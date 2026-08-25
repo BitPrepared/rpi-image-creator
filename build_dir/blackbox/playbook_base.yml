@@ -204,7 +204,8 @@
           - console-common
           - console-data
           - dnsutils
-          - ntpdate
+          - ntpsec-ntpdate
+          - net-tools
         state: present
 
     - name: Configure hostapd
