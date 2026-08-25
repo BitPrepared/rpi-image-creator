@@ -395,3 +395,17 @@
       copy:
         dest: /boot/userconf.txt 
         content: "pi:$6$rz9STc6t7Sqowjo7$IGlgGK/gd22WV1/RIaWuEQHYIZ6O2eLPHPcH.LYfoz6Z5tywBcnvffsE0mSImLo3t.PbYBBriOHk1reVuPHvX/"
+
+    - name: Disable boot interaction
+      ansible.builtin.copy:
+        src: config/etc
+        dest: /etc
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Maschera userconfig.service
+      ansible.builtin.systemd_service:
+        name: userconfig.service
+        enabled: false
+        masked: true
