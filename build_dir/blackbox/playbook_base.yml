@@ -245,6 +245,13 @@
           - net-tools
         state: present
 
+    - name: Remove unnecessary software packages
+      become_user: root
+      package:
+        name:
+          - userconf-pi
+        state: absent
+
     - name: Configure hostapd
       become_user: root
       template:
